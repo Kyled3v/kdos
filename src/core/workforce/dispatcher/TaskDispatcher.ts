@@ -107,13 +107,41 @@ export class TaskDispatcher {
       .getAvailable()
       .filter((employee) => employee.canExecute(task));
 
-    if (candidates.length === 0) {
+    return this.selectEmployee(candidates, task.id);
+  }
+
+  /**
+   * Validates a candidate list of employees and returns the selected
+   * employee. Never indexes the array directly — the array is checked
+   * for emptiness first, and the selected entry is verified to exist
+   * before being returned. Throws a descriptive error if the
+   * candidate list is empty or malformed.
+   */
+  private selectEmployee(
+    candidates: BaseEmployee[],
+    taskId: string
+  ): BaseEmployee {
+    if (!Array.isArray(candidates)) {
       throw new Error(
-        `TaskDispatcher: no available employee can execute task "${task.id}".`
+        `TaskDispatcher: candidate list for task "${taskId}" is not an array.`
       );
     }
 
-    return candidates[0];
+    if (candidates.length === 0) {
+      throw new Error(
+        `TaskDispatcher: no available employee can execute task "${taskId}".`
+      );
+    }
+
+    const selected = candidates.find((candidate) => candidate !== undefined);
+
+    if (!selected) {
+      throw new Error(
+        `TaskDispatcher: candidate list for task "${taskId}" contained no valid employee.`
+      );
+    }
+
+    return selected;
   }
 
   /**
